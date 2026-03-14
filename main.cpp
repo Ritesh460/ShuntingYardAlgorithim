@@ -5,7 +5,7 @@
 #include <fstream>
 using namespace std;
 //compared to other projects, doing 1 file to see if this a system I can do otherwise by next project I'll revert back to working on multiple files
-// Node class
+//node class
 class Node {
 public:
   char data;
@@ -20,26 +20,56 @@ public:
     right = NULL;
   }
 };
-//STACK FUNCTIONS
+
+//function prototypes
 void push(Node* &top, Node* n);
 Node* pop(Node* &top);
 Node* peek(Node* top);
-//QUEUE FUNCTIONS
 void enqueue(Node* &front, Node* &rear, Node* n);
 Node* dequeue(Node* &front, Node* &rear);
-
 int precedence(char op);
 bool isOperator(char c);
+Node* shuntingYard(char input[]);
+Node* buildTree(Node* postfix);
+void printPrefix(Node* root);
+void printPostfix(Node* root);
+void printInfix(Node* root);
+
 
 int main () {
+//input for infix
+  char input[100];
+  cout << "Enter an infix expression (make sure to use spaces): ";
+  cin.getline(input, 100);
+  Node* postfix_queue = shuntingYard(input);
+  cout << "Postfix expression: ";
+  Node* temp = postfix_queue;
+  while (temp != NULL) {
+    cout << temp->data << " ";
+    temp = temp->next;
+  }
+  cout << endl;
+  //output prefix, infix, and postfix
+  Node* root = buildTree(postfix_queue);
+  cout << "Prefix: ";
+  printPrefix(root);
+  cout << endl;
+  cout << "Infix: ";
+  printInfix(root);
+  cout << endl;
+  cout << "Postfix: ";
+  printPostfix(root);
+  cout << endl;
   return 0;
 }
 
+//add node to top of stack
 void push(Node* &top, Node* n) {
   n->next = top;
   top = n;
 }
 
+//remove top node from stack and retrun it
 Node* pop(Node* &top) {
   if (top == NULL) {
     return NULL;
@@ -50,10 +80,12 @@ Node* pop(Node* &top) {
   return temp;
 }
 
+//check top node without removal
 Node* peek(Node* top) {
   return top;
 }
 
+//adds node to end of queue
 void enqueue(Node* &front, Node* &rear, Node* n) {
   if (rear == NULL) {
     front = rear = n;
@@ -64,6 +96,7 @@ void enqueue(Node* &front, Node* &rear, Node* n) {
   }
 }
 
+//removes first element of queue
 Node* dequeue(Node* &front, Node* &rear) {
   if (front == NULL) {
     return NULL;
@@ -80,6 +113,7 @@ Node* dequeue(Node* &front, Node* &rear) {
   return temp;
 }
 
+//determines what operations go first
 int precedence(char op) {
   if (op == '^') {
     return 3;
@@ -93,10 +127,12 @@ int precedence(char op) {
   return 0;
 }
 
+//checks if character is operator, faster way to do for main
 bool isOperator(char c) {
   return c=='+' || c=='-' || c=='*' || c=='/' || c=='^';
 }
 
+//the main algorithim that checks, adds, and delete
 Node* shuntingYard(char input[]) {
   Node* stack = NULL;
   Node* front = NULL;
@@ -130,7 +166,7 @@ Node* shuntingYard(char input[]) {
       pop(stack); 
     }
 
-
+  }
   //movves remaining operators
   while (stack != NULL) {
     enqueue(front, rear, pop(stack));
@@ -138,6 +174,7 @@ Node* shuntingYard(char input[]) {
   return front;
 }
 
+//builds expression tree from postfix 
 Node* buildTree(Node* postfix) {
   Node* stack = NULL;
   while (postfix != NULL) {
@@ -159,12 +196,48 @@ Node* buildTree(Node* postfix) {
   }
   return pop(stack); 
 }
+//prefix conversion
+void printPrefix(Node* root) {
+  if (root == NULL) {
+    return;
+  }
+  else {
+    cout << root->data << " ";
+    printPrefix(root->left);
+    printPrefix(root->right);
+  }
+}
+//infix conversion
+void printInfix(Node* root) {
+    if (root == NULL) {
+      return;
+    }
+    else {
 
-//Goal: finish infix, prefix, and postfix before FRIDAY
+      if (isOperator(root->data)) {
+        cout << "(";
+      }
 
-//void printPrefix(Node* root)
-//void printInfix(Node* root)
-//void printPostfix(Node* root)
+      printInfix(root->left);
+      cout << root->data << " ";
+      printInfix(root->right);
+     
+      if (isOperator(root->data)) {
+        cout << ")";
+      }
+    }
+}
+//postfix conversion
+void printPostfix(Node* root) {
+    if (root == NULL) {
+      return;
+    }
+    else {
+      printPostfix(root->left);
+      printPostfix(root->right);
+      cout << root->data << " ";
+    }
+}
 //Steps to complete project:
 //1.BUILD A STACK USING A LINKED LIST. You don't need a separate class for this, but you DO need the push(), pop(), and peek() functions.
 //2.BUILD A QUEUE USING A LINKED LIST. You don't need a separate class for this, but you DO need the enqueue() and dequeue() functions.
